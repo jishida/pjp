@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+abort() {
+	echo "$@"
+	exit 1
+}
+
+compile() {
+	javac -source "$JDK_VERSION" -target "$JDK_VERSION" pjp.java >& /dev/null \
+		|| abort 'failed to compile. javac required.'
+}
+
+JDK_VERSION='1.2'
+JAVA_COMMAND='java'
+
+cd "$(dirname "${BASH_SOURCE[0]}")/../lib"
+
+if [ "$1" = "-b" ]; then
+	compile
+	echo 'compile done.'
+	exit 0
+fi
+
+if [[ "$1" =~ ^-c.*$ ]]; then
+	JAVA_COMMAND="${1:2}"
+	shift 1
+fi
+
+if [ ! -f ./pjp.class ]; then
+	compile
+fi
+
+"$JAVA_COMMAND" pjp "$@"
