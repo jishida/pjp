@@ -28,3 +28,13 @@ java.class.path=.
 java.class.version=52.0
 ...
 ```
+
+other java
+```
+$ export PJP_JAVA=/usr/lib/jvm/java-7-openjdk-amd64/bin/java
+$ pjp java.specification.version
+java.specification.version=1.7
+$ export PJP_JAVA=/usr/lib/jvm/java-8-openjdk-amd64/bin/java
+$ pjp java.specification.version
+java.specification.version=1.8
+```

@@ -11,23 +11,35 @@ compile() {
 }
 
 JDK_VERSION='1.2'
-JAVA_COMMAND='java'
+PROP_NAMES=()
+if [ "$PJP_JAVA" = "" ]; then
+	PJP_JAVA='java'
+fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../lib"
 
-if [ "$1" = "-b" ]; then
-	compile
-	echo 'compile done.'
-	exit 0
-fi
-
-if [[ "$1" =~ ^-c.*$ ]]; then
-	JAVA_COMMAND="${1:2}"
+while (( $# > 0 )); do
+	case "$1" in
+		'--compile' | '-c' )
+			compile
+			echo 'compile done.'
+			exit 0
+			;;
+		--java* )
+			PJP_JAVA="${1:6}"
+			;;
+		-j* )
+			PJP_JAVA="${1:2}"
+			;;
+		* )
+			PROP_NAMES+="$1"
+			;;
+	esac
 	shift 1
-fi
+done
 
 if [ ! -f ./pjp.class ]; then
 	compile
 fi
 
-"$JAVA_COMMAND" pjp "$@"
+"$PJP_JAVA" pjp "${PROP_NAMES[@]}"
