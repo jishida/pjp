@@ -1,11 +1,11 @@
-# print-jvm-props
+# print jvm properties
 
 ### Usage
 
 setup
 ```
 $ git clone https://github.com/jishida/pjp.git
-$ source pjp/bin/pjpenv
+$ source pjp/env
 ```
 
 print properties
