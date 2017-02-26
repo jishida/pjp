@@ -32,7 +32,7 @@ while (( $# > 0 )); do
 			PJP_JAVA="${1:2}"
 			;;
 		* )
-			PROP_NAMES+="$1"
+			PROP_NAMES+=("$1")
 			;;
 	esac
 	shift 1
@@ -42,4 +42,4 @@ if [ ! -f ./pjp.class ]; then
 	compile
 fi
 
-"$PJP_JAVA" pjp "${PROP_NAMES[@]}"
+"$PJP_JAVA" pjp ${PROP_NAMES[@]}
