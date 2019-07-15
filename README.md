@@ -5,7 +5,26 @@
 setup
 ```
 $ git clone https://github.com/jishida/pjp.git
-$ source pjp/env
+$ pjp/bin/pjp --help
+USAGE:
+  pjp [OPTIONS] [PROPERTY...]
+
+OPTIONS:
+  -d, --java-home <java home> Overwrites JAVA_HOME
+  -r, --runtime <java>        Specifies executable runtime path
+  -c, --compiler <javac>      Specifies executable compiler path
+  -t, --target <jdk version>  Specifies target JDK version
+
+FLAGS:
+  -f, --force-compile         Force compile
+  -h, --help                  Prints this message
+```
+
+install
+```
+$ git clone https://github.com/jishida/pjp.git
+$ cd pjp
+$ sudo make install
 ```
 
 print properties
@@ -31,10 +50,9 @@ java.class.version=52.0
 
 other java
 ```
-$ export PJP_JAVA=/usr/lib/jvm/java-7-openjdk-amd64/bin/java
+$ export PJP_JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 $ pjp java.specification.version
 java.specification.version=1.7
-$ export PJP_JAVA=/usr/lib/jvm/java-8-openjdk-amd64/bin/java
-$ pjp java.specification.version
+$ pjp java.specification.version --java-home /usr/lib/jvm/java-8-openjdk-amd64
 java.specification.version=1.8
 ```

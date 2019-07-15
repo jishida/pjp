@@ -1,0 +1,24 @@
+#!/bin/sh
+
+WD="$(cd "$(dirname "$0")"|pwd)"
+BUILD_DIR="$WD/build"
+PREFIX_FILE="$BUILD_DIR/prefix"
+PREFIX=/usr/local
+
+if [ ! -d "$BUILD_DIR" ]; then
+  mkdir "$BUILD_DIR"
+fi
+
+case "$1" in
+    --prefix)
+        PREFIX="$2"
+        ;;
+    --prefix=*)
+        PREFIX="$(printf %s "$1" | awk '{print substr($0,10)}')"
+        ;;
+    --prefix*)
+        PREFIX="$(printf %s "$1" | awk '{print substr($0,9)}')"
+        ;;
+esac
+
+printf %s "$PREFIX" > "$PREFIX_FILE"

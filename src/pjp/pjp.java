@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 public class pjp {
 	public static void main (String[] args) {
-		final List names = new ArrayList();
+		final List<String> names = new ArrayList<String>();
 		if(args.length == 0){
 			final Enumeration e = System.getProperties().propertyNames();
 			while(e.hasMoreElements()) {
@@ -18,7 +18,7 @@ public class pjp {
 				names.add(args[i]);
 			}
 		}
-		final Iterator iter = names.iterator();
+		final Iterator<String> iter = names.iterator();
 		while (iter.hasNext()) {
 			printProperty(iter.next().toString());
 		}

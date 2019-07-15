@@ -1,0 +1,69 @@
+abort() {
+    echo "$@"
+    exit 1
+}
+
+install() {
+    umask 0022
+
+    [ -d "$INSTALL_BIN_DIR" ] || mkdir --verbose -p "$INSTALL_BIN_DIR" || (
+        echo "Failed to create directory: '$INSTALL_BIN_DIR'"
+        return 1
+    )
+    [ -d "$INSTALL_SRC_DIR" ] || mkdir --verbose -p "$INSTALL_SRC_DIR" || (
+        echo "Failed to create directory: '$INSTALL_SRC_DIR'"
+        return 1
+    )
+
+    cp --verbose "$PJP_FILE" "$INSTALL_PJP_FILE" || (
+        echo "Failed to copy file: '$INSTALL_PJP_FILE'"
+        return 1
+    )
+
+    umask 0133
+
+    cp --verbose "$PJP_SRC_FILE" "$INSTALL_PJP_SRC_FILE" || (
+        echo "Failed to copy file: '$INSTALL_PJP_SRC_FILE'"
+        return 1
+    )
+    cp --verbose "$PJP_LEGACY_SRC_FILE" "$INSTALL_PJP_LEGACY_SRC_FILE" || (
+        echo "Failed to copy file: '$INSTALL_PJP_LEGACY_SRC_FILE"
+        return 1
+    )
+}
+
+uninstall() {
+    [ ! -f "$INSTALL_PJP_FILE" ] || rm --verbose "$INSTALL_PJP_FILE" || echo "Failed to remove '$INSTALL_PJP_FILE'"
+    [ ! -f "$INSTALL_PJP_SRC_FILE" ] || rm --verbose "$INSTALL_PJP_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_SRC_FILE'"
+    [ ! -f "$INSTALL_PJP_LEGACY_SRC_FILE" ] || rm --verbose "$INSTALL_PJP_LEGACY_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_LEGACY_SRC_FILE'"
+    [ -d "$INSTALL_SRC_DIR" ] && rmdir --verbose --ignore-fail-on-non-empty "$INSTALL_SRC_DIR"
+}
+
+ROOT="$(pwd)"
+
+BIN_DIR="$ROOT/bin"
+SRC_DIR="$ROOT/src/pjp"
+
+PJP_FILE="$BIN_DIR/pjp"
+PJP_SRC_FILE="$SRC_DIR/pjp.java"
+PJP_LEGACY_SRC_FILE="$SRC_DIR/pjp_legacy.java"
+
+PREFIX_FILE="$ROOT/build/prefix"
+
+PREFIX=''
+if [ -f "$PREFIX_FILE" ]; then
+    PREFIX="$(cat "$PREFIX_FILE")"
+fi
+
+case "$PREFIX" in
+    '') PREFIX=/usr/local ;;
+    '/'*) ;;
+    *) PREFIX="/usr/local/$PREFIX" ;;
+esac
+
+INSTALL_BIN_DIR="$PREFIX/bin"
+INSTALL_SRC_DIR="$PREFIX/src/pjp"
+
+INSTALL_PJP_FILE="$INSTALL_BIN_DIR/pjp"
+INSTALL_PJP_SRC_FILE="$INSTALL_SRC_DIR/pjp.java"
+INSTALL_PJP_LEGACY_SRC_FILE="$INSTALL_SRC_DIR/pjp_legacy.java"

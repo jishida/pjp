@@ -1,45 +1,201 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 abort() {
 	echo "$@"
 	exit 1
 }
 
-compile() {
-	javac -source "$JDK_VERSION" -target "$JDK_VERSION" pjp.java >& /dev/null \
-		|| abort 'failed to compile. javac required.'
+help() {
+	cat << HELP
+USAGE:
+  pjp [OPTIONS] [PROPERTY...]
+
+OPTIONS:
+  -d, --java-home <java home> Overwrites JAVA_HOME
+  -r, --runtime <java>        Specifies executable runtime path
+  -c, --compiler <javac>      Specifies executable compiler path
+  -t, --target <jdk version>  Specifies target JDK version
+
+FLAGS:
+  -f, --force-compile         Force compile
+  -h, --help                  Prints this message
+HELP
 }
 
-JDK_VERSION='1.2'
-PROP_NAMES=()
-if [ "$PJP_JAVA" = "" ]; then
-	PJP_JAVA='java'
-fi
+compile() {
+	command -v "$PJP_JAVAC" >/dev/null 2>&1 \
+		|| abort "'$PJP_JAVAC' not found."
+	"$PJP_JAVAC" -source "$PJP_JDK_VERSION" -target "$PJP_JDK_VERSION" -d "$CLASS_PATH" $SOURCE_FILE >/dev/null 2>&1 \
+		|| abort 'Failed to compile pjp.'
+}
 
-cd "$(dirname "${BASH_SOURCE[0]}")/../lib"
+quot() {
+	printf %s "'"
+	printf %s "$1" | sed -e "s/'/'$DQ'$DQ'/g"
+	printf %s "'"
+}
 
-while (( $# > 0 )); do
-	case "$1" in
-		'--compile' | '-c' )
-			compile
-			echo 'compile done.'
-			exit 0
+push_args() {
+	case "$ARGS" in
+		'') ARGS="$(quot "$1")" ;;
+		*) ARGS="$ARGS $(quot "$1")" ;;
+	esac
+}
+
+print_opt() {
+	case "$2" in
+		"$1")
+			printf %s "$3"
 			;;
-		--java* )
-			PJP_JAVA="${1:6}"
+		"$1"=*)
+			printf %s "$1$TAB$2" | awk 'BEGIN{FS="\t"}NR==1{print substr($2,length($1)+2)}'
 			;;
-		-j* )
-			PJP_JAVA="${1:2}"
-			;;
-		* )
-			PROP_NAMES+=("$1")
+		"$1"*)
+			printf %s "$1$TAB$2" | awk 'BEGIN{FS="\t"}NR==1{print substr($2,length($1)+1)}'
 			;;
 	esac
-	shift 1
+}
+
+win_to_unix() {
+	printf %s "$1" | awk 'BEGIN{FS=":"}{print "/" tolower($1) substr(gensub(/\\/,"/","g"),3)}'
+}
+
+PJP=pjp
+TAB=$(printf '\t_')
+TAB="${TAB%_}"
+DQ='"'
+ROOT="$(cd "$(dirname "$0")/.."|pwd)"
+WD="$HOME/.pjp"
+ARGS=''
+COMPILE=0
+
+if [ "$PJP_JAVA_HOME" = '' ]; then
+	PJP_JAVA_HOME="$JAVA_HOME"
+fi
+
+case "$PJP_JAVA_HOME" in
+	[a-zA-Z]':'*)
+		case "$(uname -s)" in
+			MINGW*|MSYS*)
+				PJP_JAVA_HOME="$(win_to_unix "$PJP_JAVA_HOME")"
+				;;
+			CYGWIN*)
+				if [ "$PJP_CYGDRIVE" = '' ]; then
+					PJP_JAVA_HOME="$(win_to_unix "$PJP_JAVA_HOME")"
+				else
+					PJP_JAVA_HOME="$(
+						printf %s "${PJP_CYGDRIVE%/}"
+						win_to_unix "$PJP_JAVA_HOME"
+					)"
+				fi
+				;;
+		esac
+		;;
+esac
+
+while [ "$#" != '0' ]; do
+	case "$1" in
+		--force-compile|-f)
+			COMPILE=1
+			;;
+		--help|-h)
+			help
+			exit 0
+			;;
+		--runtime*)
+			opt=--runtime
+			PJP_JAVA="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		-r*)
+			opt=-r
+			PJP_JAVA="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		--compiler*)
+			opt=--compiler
+			PJP_JAVAC="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		-c*)
+			opt=-c
+			PJP_JAVAC="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		--java-home*)
+			opt=--java-home
+			PJP_JAVA_HOME="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		-d*)
+			opt=-d
+			PJP_JAVA_HOME="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		--target*)
+			opt=--target
+			PJP_JDK_VERSION="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		-t*)
+			opt=-t
+			PJP_JDK_VERSION="$(print_opt "$opt" "$1" "$2")"
+			[ "$opt" = "$1" ] && shift
+			;;
+		*)
+			push_args "$1"
+			;;
+	esac
+	shift
 done
 
-if [ ! -f ./pjp.class ]; then
+if [ "$PJP_JAVA" = '' ]; then
+	if [ "$PJP_JAVA_HOME" = '' ]; then
+		PJP_JAVA='java'
+	else
+		PJP_JAVA="${PJP_JAVA_HOME%/}/bin/java"
+		[ -f "$PJP_JAVA" ] || PJP_JAVA='java'
+	fi
+fi
+
+if [ "$PJP_JAVAC" = '' ]; then
+	if [ "$PJP_JAVA_HOME" = '' ]; then
+		PJP_JAVAC='javac'
+	else
+		PJP_JAVAC="${PJP_JAVA_HOME%/}/bin/javac"
+		[ -f "$PJP_JAVAC" ] || PJP_JAVAC='javac'
+	fi
+fi
+
+command -v "$PJP_JAVA" >/dev/null 2>&1 \
+	|| abort "'$PJP_JAVA' not found."
+
+if [ "$PJP_JDK_VERSION" = '' ]; then
+	PJP_JDK_VERSION="$("$PJP_JAVA" -version 2>&1 | head -n 1 | sed -e 's/^[^"]*"\(1\.\([2-9]\|[1-9][0-9]\)\).*$/\1/g')"
+else
+	case "$PJP_JDK_VERSION" in
+		'1.'[2-9]|'1.'[1-9][0-9]) ;;
+		[2-9]|[1-9][0-9]) PJP_JDK_VERSION="1.$PJP_JDK_VERSION" ;;
+		*) abort "Invalid target: $PJP_JDK_VERSION" ;;
+	esac
+fi
+
+case "$PJP_JDK_VERSION" in
+	'1.'[2-5]) PJP=pjp_legacy ;;
+esac
+
+CLASS_PATH="$WD/$PJP_JDK_VERSION"
+CLASS_FILE="$CLASS_PATH/$PJP.class"
+SOURCE_FILE="$ROOT/src/pjp/$PJP.java"
+
+if [ ! -d "$CLASS_PATH" ]; then
+	mkdir -p "$CLASS_PATH"
+fi
+
+if [ "$COMPILE" = 1 ] || [ ! -f "$CLASS_FILE" ]; then
 	compile
 fi
 
-"$PJP_JAVA" pjp ${PROP_NAMES[@]}
+eval "$(quot "$PJP_JAVA") -classpath $(quot "$CLASS_PATH") $PJP $ARGS"
+
+exit 0
