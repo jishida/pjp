@@ -56,8 +56,12 @@ print_opt() {
 	esac
 }
 
-win_to_unix() {
-	printf %s "$1" | awk 'BEGIN{FS=":"}{print "/" tolower($1) substr(gensub(/\\/,"/","g"),3)}'
+print_unix_path() {
+	case "$1" in
+		[a-zA-Z]':'*)
+			printf %s "$1" | awk 'BEGIN{FS=":"}{print "/" tolower($1) substr(gensub(/\\/,"/","g"),3)}'
+			;;
+	esac
 }
 
 PJP=pjp
@@ -73,23 +77,18 @@ if [ "$PJP_JAVA_HOME" = '' ]; then
 	PJP_JAVA_HOME="$JAVA_HOME"
 fi
 
-case "$PJP_JAVA_HOME" in
-	[a-zA-Z]':'*)
-		case "$(uname -s)" in
-			MINGW*|MSYS*)
-				PJP_JAVA_HOME="$(win_to_unix "$PJP_JAVA_HOME")"
-				;;
-			CYGWIN*)
-				if [ "$PJP_CYGDRIVE" = '' ]; then
-					PJP_JAVA_HOME="$(win_to_unix "$PJP_JAVA_HOME")"
-				else
-					PJP_JAVA_HOME="$(
-						printf %s "${PJP_CYGDRIVE%/}"
-						win_to_unix "$PJP_JAVA_HOME"
-					)"
-				fi
-				;;
-		esac
+case "$(uname -s)" in
+	MINGW*|MSYS*)
+		PJP_JAVA_HOME="$(print_unix_path "$PJP_JAVA_HOME")"
+		;;
+	CYGWIN*)
+		if [ "$PJP_CYGDRIVE" = '' ]; then
+			PJP_CYGDRIVE='/cygdrive'
+		fi
+		PJP_JAVA_HOME="$(
+			printf %s "${PJP_CYGDRIVE%/}"
+			print_unix_path "$PJP_JAVA_HOME"
+		)"
 		;;
 esac
 
