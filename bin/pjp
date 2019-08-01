@@ -170,12 +170,24 @@ command -v "$PJP_JAVA" >/dev/null 2>&1 \
 	|| abort "'$PJP_JAVA' not found."
 
 if [ "$PJP_JDK_VERSION" = '' ]; then
-	PJP_JDK_VERSION="$("$PJP_JAVA" -version 2>&1 | awk -F'"' 'NR==1{match($2,/1\.([2-9]|[1-9][0-9])/);print substr($2,RSTART,RLENGTH)}')"
+	PJP_JDK_VERSION="$(
+		"$PJP_JAVA" -version 2>&1 | awk -F'"' \
+'NR==1{
+pos=match($2,/^(1\.[4-8]|([1-9][0-9]+|9)([^0-9]|$))/);
+if(pos!=0){
+len=RLENGTH;
+if(match(substr($2,pos+len-1,1),/[0-9]/)==0)len--;
+print substr($2,pos,len);
+}
+}'
+	)"
 fi
 
 case "$PJP_JDK_VERSION" in
-	'1.'[2-9]|'1.'[1-9][0-9]);;
-	[2-9]|[1-9][0-9]) PJP_JDK_VERSION="1.$PJP_JDK_VERSION";;
+	'1.'[2-8]|9|[1-9][0-9]) ;;
+	'1.9') PJP_JDK_VERSION=9;;
+	'1.10') PJP_JDK_VERSION=10;;
+	[2-8]) PJP_JDK_VERSION="1.$PJP_JDK_VERSION";;
 	*) abort "Invalid target: $PJP_JDK_VERSION";;
 esac
 
