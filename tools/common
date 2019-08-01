@@ -6,37 +6,37 @@ abort() {
 install() {
     umask 0022
 
-    [ -d "$INSTALL_BIN_DIR" ] || mkdir --verbose -p "$INSTALL_BIN_DIR" || (
+    [ -d "$INSTALL_BIN_DIR" ] || mkdir -v -p "$INSTALL_BIN_DIR" || (
         echo "Failed to create directory: '$INSTALL_BIN_DIR'"
         return 1
     )
-    [ -d "$INSTALL_SRC_DIR" ] || mkdir --verbose -p "$INSTALL_SRC_DIR" || (
+    [ -d "$INSTALL_SRC_DIR" ] || mkdir -v -p "$INSTALL_SRC_DIR" || (
         echo "Failed to create directory: '$INSTALL_SRC_DIR'"
         return 1
     )
 
-    cp --verbose "$PJP_FILE" "$INSTALL_PJP_FILE" || (
+    cp -v "$PJP_FILE" "$INSTALL_PJP_FILE" || (
         echo "Failed to copy file: '$INSTALL_PJP_FILE'"
         return 1
     )
 
     umask 0133
 
-    cp --verbose "$PJP_SRC_FILE" "$INSTALL_PJP_SRC_FILE" || (
+    cp -v "$PJP_SRC_FILE" "$INSTALL_PJP_SRC_FILE" || (
         echo "Failed to copy file: '$INSTALL_PJP_SRC_FILE'"
         return 1
     )
-    cp --verbose "$PJP_LEGACY_SRC_FILE" "$INSTALL_PJP_LEGACY_SRC_FILE" || (
+    cp -v "$PJP_LEGACY_SRC_FILE" "$INSTALL_PJP_LEGACY_SRC_FILE" || (
         echo "Failed to copy file: '$INSTALL_PJP_LEGACY_SRC_FILE"
         return 1
     )
 }
 
 uninstall() {
-    [ ! -f "$INSTALL_PJP_FILE" ] || rm --verbose "$INSTALL_PJP_FILE" || echo "Failed to remove '$INSTALL_PJP_FILE'"
-    [ ! -f "$INSTALL_PJP_SRC_FILE" ] || rm --verbose "$INSTALL_PJP_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_SRC_FILE'"
-    [ ! -f "$INSTALL_PJP_LEGACY_SRC_FILE" ] || rm --verbose "$INSTALL_PJP_LEGACY_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_LEGACY_SRC_FILE'"
-    [ -d "$INSTALL_SRC_DIR" ] && rmdir --verbose --ignore-fail-on-non-empty "$INSTALL_SRC_DIR"
+    [ ! -f "$INSTALL_PJP_FILE" ] || rm -v "$INSTALL_PJP_FILE" || echo "Failed to remove '$INSTALL_PJP_FILE'"
+    [ ! -f "$INSTALL_PJP_SRC_FILE" ] || rm -v "$INSTALL_PJP_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_SRC_FILE'"
+    [ ! -f "$INSTALL_PJP_LEGACY_SRC_FILE" ] || rm -v "$INSTALL_PJP_LEGACY_SRC_FILE" || echo "Failed to remove '$INSTALL_PJP_LEGACY_SRC_FILE'"
+    [ -d "$INSTALL_SRC_DIR" ] && rmdir -v "$INSTALL_SRC_DIR"
 }
 
 ROOT="$(pwd)"
