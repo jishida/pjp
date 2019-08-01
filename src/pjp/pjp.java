@@ -26,7 +26,10 @@ public class pjp {
 	
 	private static void printProperty(final String name) {
 		final String prop = System.getProperty(name);
-		final String output = name + "=" + (prop == null ? "<null>" : prop);
+		String output = name;
+		if (prop != null) {
+			output += "=" + prop;
+		}
 		System.out.println(output);
 	}
 }
