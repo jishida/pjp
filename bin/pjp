@@ -35,7 +35,7 @@ quot() {
 	printf %s "'"
 }
 
-push_args() {
+push_arg() {
 	case "$ARGS" in
 		'') ARGS="$(quot "$1")";;
 		*) ARGS="$ARGS $(quot "$1")";;
@@ -101,48 +101,29 @@ while [ "$#" != '0' ]; do
 			help
 			exit 0
 			;;
-		--runtime*)
-			opt=--runtime
-			PJP_JAVA="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		-r*)
-			opt=-r
-			PJP_JAVA="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		--compiler*)
-			opt=--compiler
-			PJP_JAVAC="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		-c*)
-			opt=-c
-			PJP_JAVAC="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		--java-home*)
-			opt=--java-home
-			PJP_JAVA_HOME="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		-d*)
-			opt=-d
-			PJP_JAVA_HOME="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		--target*)
-			opt=--target
-			PJP_JDK_VERSION="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
-		-t*)
-			opt=-t
-			PJP_JDK_VERSION="$(print_opt "$opt" "$1" "$2")"
-			[ "$opt" = "$1" ] && shift
-			;;
 		*)
-			push_args "$1"
+			is_arg=1
+			while read tuple; do
+				opt="${tuple#*,}"
+				case "$1" in
+					"$opt"*)
+					    is_arg=0
+						eval "${tuple%,*}=$(quot "$(print_opt "$opt" "$1" "$2")")"
+						[ "$opt" = "$1" ] && shift
+						break
+						;;
+				esac
+			done <<OPTS
+PJP_JAVA,-r
+PJP_JAVA,--runtime
+PJP_JAVAC,-c
+PJP_JAVAC,--compiler
+PJP_JAVA_HOME,-d
+PJP_JAVA_HOME,--java-home
+PJP_JDK_VERSION,-t
+PJP_JDK_VERSION,--target
+OPTS
+			[ $is_arg -eq 1 ] && push_arg "$1"
 			;;
 	esac
 	shift
