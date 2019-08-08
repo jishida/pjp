@@ -72,6 +72,7 @@ ROOT="$(cd "$(dirname "$0")/.."&&pwd)"
 WD="$HOME/.pjp"
 ARGS=''
 COMPILE=0
+CYGWIN=0
 
 if [ "$PJP_JAVA_HOME" = '' ]; then
 	PJP_JAVA_HOME="$JAVA_HOME"
@@ -82,6 +83,7 @@ case "$(uname -s)" in
 		PJP_JAVA_HOME="$(print_unix_path "$PJP_JAVA_HOME")"
 		;;
 	CYGWIN*)
+		CYGWIN=1
 		if [ "$PJP_CYGDRIVE" = '' ]; then
 			PJP_CYGDRIVE='/cygdrive'
 		fi
@@ -179,6 +181,13 @@ esac
 CLASS_PATH="$WD/$PJP_JDK_VERSION"
 CLASS_FILE="$CLASS_PATH/$PJP.class"
 SOURCE_FILE="$ROOT/src/pjp/$PJP.java"
+
+case "$CYGWIN" in
+	1)
+		CLASS_PATH="$(cygpath -w "$CLASS_PATH")"
+		SOURCE_FILE="$(cygpath -w "$SOURCE_FILE")"
+		;;
+esac
 
 if [ ! -d "$CLASS_PATH" ]; then
 	mkdir -p "$CLASS_PATH"
