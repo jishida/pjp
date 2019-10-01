@@ -68,7 +68,18 @@ PJP=pjp
 TAB=$(printf '\t_')
 TAB="${TAB%_}"
 DQ='"'
-ROOT="$(cd "$(dirname "$0")/.."&&pwd)"
+BIN="$0"
+while true; do
+  cd "$(dirname "$BIN")"
+  BIN="$(basename "$BIN")"
+  if [ -L "$BIN" ]; then
+    BIN="$(readlink "$BIN")"
+  else
+    break
+  fi
+done
+BIN="$(pwd)/$BIN"
+ROOT="$(cd "$(dirname "$BIN")/.."&&pwd)"
 WD="$HOME/.pjp"
 ARGS=''
 COMPILE=0
